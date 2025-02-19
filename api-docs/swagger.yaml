@@ -1,0 +1,548 @@
+openapi: 3.0.0
+info:
+  version: '1.0'
+  title: The GIMP plugin and extension registry
+  description: >-
+    This API will host content related to specific plugins and extensions
+    created for the GIMP graphical creation and editing tool
+servers:
+  # Added by API Auto Mocking Plugin
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/DavidCastro-2f9/GIMP-plugin-extension-registry/1.0
+tags:
+  - name: plugin
+    description: Everything about plugins and extensions
+  - name: login
+    description: Everything about logging into the system
+  - name: feedback
+    description: Everything about giving feedback on plugins
+paths:
+  /plugins:
+    get:
+      tags:
+        - plugin
+      summary: Get list of plugins/extensions
+      description: Get a list of plugins and details about each
+      operationId: getPlugins
+      parameters:
+        - name: page
+          in: query
+          description: Batches content into groups of 20
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: category
+          in: header
+          description: Limits plugins and extensions returned to those in the specified category
+          required: false
+          schema:
+            type: string
+        - name: searchString
+          in: header
+          description: Limits plugins and extensions returned to those that match the specified search string
+          required: false
+          schema:
+            type: string
+      responses:
+        200:
+          $ref: '#/components/responses/plugin200'
+    post:
+      tags:
+        - plugin
+      summary: Add a plugin
+      description: Add a plugin to the repository
+      requestBody:
+        content:
+          multipart/form-data:  # Or application/x-www-form-urlencoded
+            schema:
+              type: object
+              properties:
+                type:
+                  type: string
+                  description: The type of plugin being added
+                  example: addon
+                id:
+                  type: string
+                  description: The package that the plugin uses
+                  example: org.example.tree_generator
+                extends:
+                  type: string
+                  description: TBD
+                  example: org.gimp.GIMP
+                name:
+                  type: string
+                  description: The name of the plugin
+                  example: Generator of trees
+                summary:
+                  type: string
+                  description: A short description of the plugin. Must use plain text
+                pluginDescription:
+                  type: string
+                  description: A longer description of the plugin. Can use a subset of HTML formatting
+                  example: This plug-in will randomly generate a forest inside the selection
+                urls:
+                  type: object  # urls is an object
+                  properties:
+                    homepage:  # Properties of the urls object
+                      type: string
+                      description: The URL of the home page for the plugin, if any
+                      example: https://example.org/tree_generator
+                    donation:
+                      type: string
+                      description: The URL of a page for donating to the plugin creator, if any
+                      example: https://example.org/donate
+                metadata_license:
+                  type: string
+                  description: The metadata license for the plugin
+                  example: CC0-1.0
+                project_license: 
+                  type: string
+                  description: The distribution license that the project uses
+                  example: "GPL-3.0+"
+                releases:
+                  type: object
+                  properties:
+                    version:
+                      type: string
+                      description: The full version for a given release
+                      example: 0.1
+                    date: 
+                      type: string
+                      description: The date that a version was released
+                      example: 2019-02-20
+                requires:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      description: TBD
+                      example: org.gimp.GIMP
+                    version:
+                      type: string
+                      description: The minimum version of the tool that the plugin requires.
+                      example: 2.10.6
+                    compare:
+                      type: string
+                      enum:
+                        - ge
+                        - lt
+                        - eq
+                      example: ge
+                metadata:
+                  type: object
+                  properties:
+                    GIMP::plug-in-path:
+                      type: string
+                      description: Information that a plugin user will need to configure it propertly
+                      example: src/tree-generator.py
+      responses:
+        200:
+          description: Plugin successfully added
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dbId:
+                    type: string
+                    description: The internal database identifier for the record for the plugin
+                    example: 1234
+                  type:
+                    type: string
+                    description: The type of plugin being added
+                    example: addon
+                  id:
+                    type: string
+                    description: The package that the plugin uses
+                    example: org.example.tree_generator
+                  extends:
+                    type: string
+                    description: TBD
+                    example: org.gimp.GIMP
+                  name:
+                    type: string
+                    description: The name of the plugin
+                    example: Generator of trees
+                  summary:
+                    type: string
+                    description: A short description of the plugin. Must use plain text
+                  pluginDescription:
+                    type: string
+                    description: A longer description of the plugin. Can use a subset of HTML formatting
+                    example: This plug-in will randomly generate a forest inside the selection
+                  urls:
+                    type: object  # urls is an object
+                    properties:
+                      homepage:  # Properties of the urls object
+                        type: string
+                        description: The URL of the home page for the plugin, if any
+                        example: https://example.org/tree_generator
+                      donation:
+                        type: string
+                        description: The URL of a page for donating to the plugin creator, if any
+                        example: https://example.org/donate
+                  metadata_license:
+                    type: string
+                    description: The metadata license for the plugin
+                    example: CC0-1.0
+                  project_license: 
+                    type: string
+                    description: The distribution license that the project uses
+                    example: "GPL-3.0+"
+                  releases:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        version:
+                          type: string
+                          description: The full version for a given release
+                          example: 0.1
+                        date: 
+                          type: string
+                          description: The date that a version was released
+                          example: 2019-02-20
+                  requires:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          description: TBD
+                          example: org.gimp.GIMP
+                        version:
+                          type: string
+                          description: The minimum version of the tool that the plugin requires.
+                          example: 2.10.6
+                        compare:
+                          type: string
+                          enum:
+                            - ge
+                            - lt
+                            - eq
+                          example: ge
+                  metadata:
+                    type: object
+                    properties:
+                      GIMP::plug-in-path:
+                        type: string
+                        description: Information that a plugin user will need to configure it propertly
+                        example: src/tree-generator.py
+  /plugins/{id}:
+    get:
+      tags:
+        - plugin
+      summary: Get list of plugins/extensions
+      description: Get a list of plugins and details about each
+      operationId: getPlugin
+      parameters:
+        - name: page
+          in: query
+          description: Batches content into groups of 20
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: category
+          in: header
+          description: Limits plugins and extensions returned to those in the specified category
+          required: false
+          schema:
+            type: string
+        - name: searchString
+          in: header
+          description: Limits plugins and extensions returned to those that match the specified search string
+          required: false
+          schema:
+            type: string
+        - name: id
+          in: path
+          description: The ID of the single plugin to return
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          $ref: '#/components/responses/plugin200'
+        404:
+          description: URI not found
+  /plugins/{id}/rate:
+    get:
+      tags:
+        - plugin
+      summary: Rate a plugin
+      description: Give a rating between 1 and 5 for a specific plugin
+      operationId: ratePlugin
+      parameters:
+        - name: id
+          in: path
+          description: The ID for the plugin to rate
+          required: true
+          schema:
+            type: integer
+        - name: rating
+          in: query
+          description: The rating to apply to the plugin
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Plugin successfully rated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  rating:
+                    type: integer
+                    description: The rating applied to the plugin
+                    example: 5
+        404:
+          description: URI not found
+  /plugins/{id}/feedback:
+    post:
+      tags:
+        - feedback
+      summary: Give feedback on a plugin
+      description: Give textual feedback on a plugin so that others can read your opinion about it
+      parameters:
+        - name: id
+          in: path
+          description: The ID for the plugin to give feedback about
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          multipart/form-data:  # Or application/x-www-form-urlencoded
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  description: A short title for the feedback
+                  example: Great plugin
+                feedback:
+                  type: string
+                  description: A longer text string with information about the user's experience using the plugin
+                  example: This plugin was really helpful
+                  
+      responses:
+        200:
+          description: Feedback successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  title:
+                    type: string
+                    description: The title that the user gave to their feedback
+                    example: Great plugin
+                  feedback:
+                    type: string
+                    description: The feedback that the user gave
+                    example: This plugin was really helpful
+  /plugins/updates:
+    post:
+      tags:
+        - plugin
+      summary: Retrieve version numbers of plugins that have been updated
+      description: Takes a list of plugins and corresponding versions, presumably that are installed on a client machine, and returns a subset of those plugins that have been updated since the provided version numbers, along with the latest verison number
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: The identifier for a plugin
+                    example: plugin123
+                  version:
+                    type: string
+                    description: The version of a plugin installed on a client
+                    example: 1.0
+      responses:
+        200:
+          description: Versions retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: The identifier for a plugin
+                    example: plugin123
+                  version:
+                    type: string
+                    description: The version of a plugin installed on a client
+                    example: 1.3
+
+  /feedback/{id}/vote:
+    post:
+      tags:
+        - feedback
+      summary: Upvote or downvote feedback
+      description: Give an upvote or downvote for specific feedback entries. This is used to boost helpful feedback and moves less-helpful feeback to the end.
+      parameters:
+        - name: id
+          in: path
+          description: The ID for the feedback to up or downvote
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                vote:
+                  type: string
+                  enum:
+                    - up
+                    - down
+                  example: up
+      responses:
+        200:
+          description: Vote registered
+  /auth/login:
+    post:
+      tags: 
+        - login
+      parameters:
+        - name: username
+          in: header
+          description: The username of the user who is logging in
+          required: true
+          schema:
+            type: string
+            default: jgonzales
+        - name: password
+          in: header
+          description: The password of the user who is logging in
+          required: true
+          schema:
+            type: string
+            default: password
+      responses:
+        200:
+          description: Successful login
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    description: The token created by the system for the user login session
+                    example: abc123def456
+  /auth/register:
+    post:
+      tags: 
+        - login
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  description: The username of the user who is registering an account
+                password:
+                  type: string
+                  description: The password of the user who is registering an account
+                email:
+                  type: string
+                  description: The email address of the user who is registering an account
+                userType:
+                  type: string
+                  enum:
+                    - user
+                    - developer
+      responses:
+        200:
+          description: Successfully registered
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  username:
+                    type: string
+                    description: The username of the user who registered an account
+                    example: jgonzales
+                  email:
+                    type: string
+                    description: The email address of the user who registered an account
+                    example: jgonzales@example.com
+                  userType:
+                    type: string
+                    enum:
+                      - user
+                      - developer
+                    example: developer
+                  
+      
+components:
+  responses:
+    plugin200:
+      description: Successful operation
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              plugins:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      description: The ID of the plugin
+                      example: 1
+                    name:
+                      type: string
+                      description: The name of the plugin
+                      example: Stipple brush
+                    creator:
+                      type: string
+                      description: Who created the plugin
+                      example: Jaime Gonzales
+                    downloads:
+                      type: integer
+                      description: The number of times the plugin has been downloaded
+                      example: 1001
+                    ratings:
+                      type: string
+                      description: The average star rating for the plugin
+                      example: 4.5
+                    description:
+                      type: string
+                      description: A description of the plugin
+                      example: A brush that enables you to apply a stippling effect
+                  required:
+                    - id
+                    - name
+                    - description
+              categories:
+                type: array
+                items:
+                  type: string
+                  description: A plugin category
+                  example: 
+                    - Filters
+                    - Effects
+                    - Tools
+            required:
+              - plugins
+              - categories
