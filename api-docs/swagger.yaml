@@ -45,8 +45,12 @@ paths:
           schema:
             type: string
       responses:
-        200:
+        '200':
           $ref: '#/components/responses/plugin200'
+        '4XX':
+          description: Unable to retrieve records
+        '500':
+          description: Internal error
     post:
       tags:
         - plugin
@@ -56,88 +60,9 @@ paths:
         content:
           multipart/form-data:  # Or application/x-www-form-urlencoded
             schema:
-              type: object
-              properties:
-                type:
-                  type: string
-                  description: The type of plugin being added
-                  example: addon
-                id:
-                  type: string
-                  description: The package that the plugin uses
-                  example: org.example.tree_generator
-                extends:
-                  type: string
-                  description: TBD
-                  example: org.gimp.GIMP
-                name:
-                  type: string
-                  description: The name of the plugin
-                  example: Generator of trees
-                summary:
-                  type: string
-                  description: A short description of the plugin. Must use plain text
-                pluginDescription:
-                  type: string
-                  description: A longer description of the plugin. Can use a subset of HTML formatting
-                  example: This plug-in will randomly generate a forest inside the selection
-                urls:
-                  type: object  # urls is an object
-                  properties:
-                    homepage:  # Properties of the urls object
-                      type: string
-                      description: The URL of the home page for the plugin, if any
-                      example: https://example.org/tree_generator
-                    donation:
-                      type: string
-                      description: The URL of a page for donating to the plugin creator, if any
-                      example: https://example.org/donate
-                metadata_license:
-                  type: string
-                  description: The metadata license for the plugin
-                  example: CC0-1.0
-                project_license: 
-                  type: string
-                  description: The distribution license that the project uses
-                  example: "GPL-3.0+"
-                releases:
-                  type: object
-                  properties:
-                    version:
-                      type: string
-                      description: The full version for a given release
-                      example: 0.1
-                    date: 
-                      type: string
-                      description: The date that a version was released
-                      example: 2019-02-20
-                requires:
-                  type: object
-                  properties:
-                    id:
-                      type: string
-                      description: TBD
-                      example: org.gimp.GIMP
-                    version:
-                      type: string
-                      description: The minimum version of the tool that the plugin requires.
-                      example: 2.10.6
-                    compare:
-                      type: string
-                      enum:
-                        - ge
-                        - lt
-                        - eq
-                      example: ge
-                metadata:
-                  type: object
-                  properties:
-                    GIMP::plug-in-path:
-                      type: string
-                      description: Information that a plugin user will need to configure it propertly
-                      example: src/tree-generator.py
+              $ref: '#/components/schemas/pluginCreateOrUpdate'
       responses:
-        200:
+        '200':
           description: Plugin successfully added
           content:
             application/json:
@@ -230,33 +155,17 @@ paths:
                         type: string
                         description: Information that a plugin user will need to configure it propertly
                         example: src/tree-generator.py
+        '500': 
+          description: Internal error
+      
   /plugins/{id}:
     get:
       tags:
         - plugin
-      summary: Get list of plugins/extensions
-      description: Get a list of plugins and details about each
+      summary: Get a single plugin
+      description: Get details about a single plugin
       operationId: getPlugin
       parameters:
-        - name: page
-          in: query
-          description: Batches content into groups of 20
-          required: false
-          schema:
-            type: integer
-            default: 1
-        - name: category
-          in: header
-          description: Limits plugins and extensions returned to those in the specified category
-          required: false
-          schema:
-            type: string
-        - name: searchString
-          in: header
-          description: Limits plugins and extensions returned to those that match the specified search string
-          required: false
-          schema:
-            type: string
         - name: id
           in: path
           description: The ID of the single plugin to return
@@ -264,10 +173,38 @@ paths:
           schema:
             type: integer
       responses:
-        200:
+        '200':
           $ref: '#/components/responses/plugin200'
-        404:
-          description: URI not found
+        '404':
+          description: Resources not found
+        '5XX':
+          description: Internal error
+    put:
+      tags:
+        - plugin
+      summary: Update an exist plugin
+      description: Updates an existing plugin, including subfields like releases and requires. If a subfield is missing, this deletes that entry from the database.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: The ID of the plugin to update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/pluginCreateOrUpdate'
+      responses:
+        '200': 
+          $ref: '#/components/responses/plugin200'
+        '404':
+          description: No record found with id {id}
+        '409':
+          description: Unable to update record due to a conflict with the data submitted.
+        '5XX':
+          description: Internal error
   /plugins/{id}/rate:
     get:
       tags:
@@ -289,7 +226,7 @@ paths:
           schema:
             type: integer
       responses:
-        200:
+        '200':
           description: Plugin successfully rated
           content:
             application/json:
@@ -300,8 +237,10 @@ paths:
                     type: integer
                     description: The rating applied to the plugin
                     example: 5
-        404:
+        '404':
           description: URI not found
+        '500':
+          description: Internal error
   /plugins/{id}/feedback:
     post:
       tags:
@@ -331,7 +270,7 @@ paths:
                   example: This plugin was really helpful
                   
       responses:
-        200:
+        '200':
           description: Feedback successful
           content:
             application/json:
@@ -346,6 +285,10 @@ paths:
                     type: string
                     description: The feedback that the user gave
                     example: This plugin was really helpful
+        '404':
+          description: Plugin with id {id} not found
+        '500':
+          description: Internal error
   /plugins/updates:
     post:
       tags:
@@ -369,7 +312,7 @@ paths:
                     description: The version of a plugin installed on a client
                     example: 1.0
       responses:
-        200:
+        '200':
           description: Versions retrieved
           content:
             application/json:
@@ -384,6 +327,10 @@ paths:
                     type: string
                     description: The version of a plugin installed on a client
                     example: 1.3
+        '4XX':
+          description: Cannot find version information based on the data submitted.
+        '500':
+          description: Internal error
 
   /feedback/{id}/vote:
     post:
@@ -411,8 +358,12 @@ paths:
                     - down
                   example: up
       responses:
-        200:
+        '200':
           description: Vote registered
+        '404':
+          description: No plugins found with id {id}
+        '500':
+          description: Internal error
   /auth/login:
     post:
       tags: 
@@ -433,7 +384,7 @@ paths:
             type: string
             default: password
       responses:
-        200:
+        '200':
           description: Successful login
           content:
             application/json:
@@ -444,6 +395,10 @@ paths:
                     type: string
                     description: The token created by the system for the user login session
                     example: abc123def456
+        '401':
+          description: Username and password do not match an account.
+        '500':
+          description: Internal error
   /auth/register:
     post:
       tags: 
@@ -469,7 +424,7 @@ paths:
                     - user
                     - developer
       responses:
-        200:
+        '200':
           description: Successfully registered
           content:
             application/json:
@@ -490,7 +445,10 @@ paths:
                       - user
                       - developer
                     example: developer
-                  
+        '400':
+          description: Unable to create an account with the provided credentials. Please update and try again.
+        '500':
+          description: Internal error
       
 components:
   responses:
@@ -546,3 +504,85 @@ components:
             required:
               - plugins
               - categories
+  schemas:
+    pluginCreateOrUpdate:
+      type: object
+      properties:
+        type:
+          type: string
+          description: The type of plugin being added
+          example: addon
+        id:
+          type: string
+          description: The package that the plugin uses
+          example: org.example.tree_generator
+        extends:
+          type: string
+          description: TBD
+          example: org.gimp.GIMP
+        name:
+          type: string
+          description: The name of the plugin
+          example: Generator of trees
+        summary:
+          type: string
+          description: A short description of the plugin. Must use plain text
+        pluginDescription:
+          type: string
+          description: A longer description of the plugin. Can use a subset of HTML formatting
+          example: This plug-in will randomly generate a forest inside the selection
+        urls:
+          type: object  # urls is an object
+          properties:
+            homepage:  # Properties of the urls object
+              type: string
+              description: The URL of the home page for the plugin, if any
+              example: https://example.org/tree_generator
+            donation:
+              type: string
+              description: The URL of a page for donating to the plugin creator, if any
+              example: https://example.org/donate
+        metadata_license:
+          type: string
+          description: The metadata license for the plugin
+          example: CC0-1.0
+        project_license: 
+          type: string
+          description: The distribution license that the project uses
+          example: "GPL-3.0+"
+        releases:
+          type: object
+          properties:
+            version:
+              type: string
+              description: The full version for a given release
+              example: 0.1
+            date: 
+              type: string
+              description: The date that a version was released
+              example: 2019-02-20
+        requires:
+          type: object
+          properties:
+            id:
+              type: string
+              description: TBD
+              example: org.gimp.GIMP
+            version:
+              type: string
+              description: The minimum version of the tool that the plugin requires.
+              example: 2.10.6
+            compare:
+              type: string
+              enum:
+                - ge
+                - lt
+                - eq
+              example: ge
+        metadata:
+          type: object
+          properties:
+            GIMP::plug-in-path:
+              type: string
+              description: Information that a plugin user will need to configure it propertly
+              example: src/tree-generator.py
